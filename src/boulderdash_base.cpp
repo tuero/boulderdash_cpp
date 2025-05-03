@@ -164,10 +164,6 @@ BoulderDashGameState::BoulderDashGameState(InternalState &&internal_state)
     }
 }
 
-const std::vector<Action> BoulderDashGameState::ALL_ACTIONS{
-    Action::kNoop, Action::kUp, Action::kRight, Action::kDown, Action::kLeft,
-};
-
 // ---------------------------------------------------------------------------
 
 void BoulderDashGameState::apply_action(Action action) {

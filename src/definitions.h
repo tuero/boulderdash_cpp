@@ -110,28 +110,30 @@ constexpr int kNumVisibleCellType = 34;
 
 // Actions the agent can take
 enum class Action {
-    kNoop = 0,
-    kUp = 1,
-    kRight = 2,
-    kDown = 3,
-    kLeft = 4,
+    kUp = 0,
+    kRight = 1,
+    kDown = 2,
+    kLeft = 3,
 };
-constexpr int kNumActions = 5;
+constexpr int kNumActions = 4;
 const std::array<Action, kNumActions> ALL_ACTIONS{
-    Action::kNoop, Action::kUp, Action::kRight, Action::kDown, Action::kLeft,
+    Action::kUp,
+    Action::kRight,
+    Action::kDown,
+    Action::kLeft,
 };
 
 // Directions the interactions take place
 enum class Direction {
-    kNoop = to_underlying(Action::kNoop),
     kUp = to_underlying(Action::kUp),
     kRight = to_underlying(Action::kRight),
     kDown = to_underlying(Action::kDown),
     kLeft = to_underlying(Action::kLeft),
-    kUpRight = to_underlying(Action::kLeft) + 1,
-    kDownRight = to_underlying(Action::kLeft) + 2,
-    kDownLeft = to_underlying(Action::kLeft) + 3,
-    kUpLeft = to_underlying(Action::kLeft) + 4,
+    kNoop = to_underlying(Action::kLeft) + 1,
+    kUpRight = to_underlying(Action::kLeft) + 2,
+    kDownRight = to_underlying(Action::kLeft) + 3,
+    kDownLeft = to_underlying(Action::kLeft) + 4,
+    kUpLeft = to_underlying(Action::kLeft) + 5,
 };
 // Agent can only take a subset of all directions
 constexpr int kNumDirections = 9;

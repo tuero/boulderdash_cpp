@@ -225,9 +225,6 @@ public:
      */
     [[nodiscard]] auto get_hidden_item(int index) const -> HiddenCellType;
 
-    // All possible actions
-    static const std::vector<Action> ALL_ACTIONS;
-
     friend auto operator<<(std::ostream &os, const BoulderDashGameState &state) -> std::ostream &;
 
     [[nodiscard]] auto pack() const -> InternalState {

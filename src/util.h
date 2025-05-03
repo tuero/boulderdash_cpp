@@ -454,17 +454,19 @@ const std::unordered_map<int8_t, std::string> kCellTypeToString{
 };
 
 // Rotate actions right
-const std::array<Direction, kNumActions> kRotateRight{Direction::kNoop, Direction::kRight, Direction::kDown,
-                                                      Direction::kLeft, Direction::kUp};
+const std::array<Direction, kNumActions> kRotateRight{Direction::kRight, Direction::kDown, Direction::kLeft,
+                                                      Direction::kUp};
 
 // Rotate actions left
-const std::array<Direction, kNumActions> kRotateLeft{Direction::kNoop, Direction::kLeft, Direction::kUp,
-                                                     Direction::kRight, Direction::kDown};
+const std::array<Direction, kNumActions> kRotateLeft{Direction::kLeft, Direction::kUp, Direction::kRight,
+                                                     Direction::kDown};
 
 // actions to strings
 const std::unordered_map<Direction, std::string> kActionsToString{
-    {Direction::kUp, "up"},       {Direction::kLeft, "left"}, {Direction::kDown, "down"},
-    {Direction::kRight, "right"}, {Direction::kNoop, "none"},
+    {Direction::kUp, "up"},
+    {Direction::kLeft, "left"},
+    {Direction::kDown, "down"},
+    {Direction::kRight, "right"},
 };
 
 // typedefs
@@ -485,7 +487,6 @@ const std::array<Offset, kNumDirections> kDirectionOffsets{{
 
 // Directions to fireflys
 const std::array<Element, kNumActions> kDirectionToFirefly{
-    kNullElement,       // Direction::kNoop  (shouldn't happen)
     kElFireflyUp,       // Direction::kUp
     kElFireflyRight,    // Direction::kRight
     kElFireflyDown,     // Direction::kDown
@@ -502,7 +503,6 @@ const std::unordered_map<Element, Direction, ElementHash> kFireflyToDirection{
 
 // Directions to butterflys
 const std::array<Element, kNumActions> kDirectionToButterfly{
-    kNullElement,         // Direction::kNoop  (shouldn't happen)
     kElButterflyUp,       // Direction::kUp
     kElButterflyRight,    // Direction::kRight
     kElButterflyDown,     // Direction::kDown
@@ -527,7 +527,6 @@ const std::unordered_map<Element, Direction, ElementHash> kOrangeToDirection{
 
 // Direction to Orange
 const std::array<Element, kNumActions> kDirectionToOrange{
-    kNullElement,      // Direction::kNoop  (shouldn't happen)
     kElOrangeUp,       // Direction::kUp
     kElOrangeRight,    // Direction::kRight
     kElOrangeDown,     // Direction::kDown

@@ -34,9 +34,6 @@ void test_play() {
             case 'a':
                 state.apply_action(Action::kLeft);
                 break;
-            case 'e':
-                state.apply_action(Action::kNoop);
-                break;
             default:
                 return;
         }
