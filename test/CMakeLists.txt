@@ -1,0 +1,11 @@
+add_executable(boulderdash_test test.cpp)
+target_link_libraries(boulderdash_test PUBLIC boulderdash)
+add_test(boulderdash_test boulderdash_test)
+
+add_executable(boulderdash_test_speed test_speed.cpp)
+target_link_libraries(boulderdash_test_speed PUBLIC boulderdash)
+add_test(boulderdash_test_speed boulderdash_test_speed)
+
+add_executable(boulderdash_test_throughput test_throughput.cpp)
+target_link_libraries(boulderdash_test_throughput PUBLIC boulderdash)
+add_test(boulderdash_test_throughput boulderdash_test_throughput)
