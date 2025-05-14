@@ -474,11 +474,11 @@ using Offset = std::pair<int, int>;
 
 // directions to offsets (col, row)
 const std::array<Offset, kNumDirections> kDirectionOffsets{{
-    {0, 0},     // Direction::kNoop
     {0, -1},    // Direction::kUp
     {1, 0},     // Direction::kRight
     {0, 1},     // Direction::kDown
     {-1, 0},    // Direction::kLeft
+    {0, 0},     // Direction::kNoop
     {1, -1},    // Direction::kUpRight
     {1, 1},     // Direction::kDownRight
     {-1, 1},    // Direction::kDownLeft
