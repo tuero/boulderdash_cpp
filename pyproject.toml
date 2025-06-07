@@ -1,0 +1,16 @@
+[build-system]
+requires = ["scikit-build-core", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "pyboulderdash"
+version = "0.1.0"
+description = "Python BoulderDash bindings"
+dependencies = ["numpy"]
+
+[tool.scikit-build]
+wheel.packages = ["python/pyboulderdash"]
+build.targets = ["pyboulderdash"]
+cmake.build-type = "Release"
+cmake.args = ["-DCMAKE_CXX_FLAGS='-g -O2 -fno-omit-frame-pointer'"]
+cmake.verbose = true
