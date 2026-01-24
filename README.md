@@ -15,7 +15,7 @@ To add `tuero/vcpkg-registry` as a git registry to your vcpkg project:
     "repository": "https://github.com/tuero/vcpkg-registry",
     "reference": "master",
     "baseline": "<COMMIT_SHA>",
-    "packages": ["tinytensor"]
+    "packages": ["boulderdash"]
 }
 ]
 ...
