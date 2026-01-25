@@ -1,4 +1,4 @@
-#include "boulderdash_base.h"
+#include <boulderdash/boulderdash.h>
 
 #include <algorithm>
 #include <array>
@@ -14,7 +14,6 @@
 #include <utility>
 #include <vector>
 
-#include "definitions.h"
 #include "util.h"
 
 namespace boulderdash {

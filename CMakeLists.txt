@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.23)
 
-project(boulderdash VERSION 1.0.1)
+project(boulderdash VERSION 1.0.2)
 
 option(BUILD_PYTHON_MODULE "Build the python library wrapper" OFF)
 
@@ -16,9 +16,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Sources
 set(BOULDERDASH_SOURCES
-    src/definitions.h
+    include/boulderdash/boulderdash.h 
+    include/boulderdash/boulderdash_base.h 
+    include/boulderdash/definitions.h
     src/boulderdash_base.cpp 
-    src/boulderdash_base.h 
     src/util.h
 )
 

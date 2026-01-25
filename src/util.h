@@ -1,6 +1,8 @@
 #ifndef BOULDERDASH_UTIL_H_
 #define BOULDERDASH_UTIL_H_
 
+#include <boulderdash/definitions.h>
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -8,8 +10,6 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
-
-#include "definitions.h"
 
 namespace boulderdash {
 
@@ -340,7 +340,7 @@ const Element kElOrangeRight = {
 
 // Hash for Element, so we can use as a map key
 struct ElementHash {
-    auto operator()(const Element &e) const noexcept -> std::size_t {
+    auto operator()(const Element& e) const noexcept -> std::size_t {
         return static_cast<std::size_t>(to_underlying(e.cell_type) - to_underlying(HiddenCellType::kNull));
     }
 };
@@ -612,38 +612,38 @@ inline auto IsDirectionHorz(Direction direction) noexcept -> bool {
     return direction == Direction::kLeft || direction == Direction::kRight;
 }
 
-inline auto IsFirefly(const Element &element) noexcept -> bool {
+inline auto IsFirefly(const Element& element) noexcept -> bool {
     return element == kElFireflyUp || element == kElFireflyLeft || element == kElFireflyDown ||
            element == kElFireflyRight;
 }
 
-inline auto IsButterfly(const Element &element) noexcept -> bool {
+inline auto IsButterfly(const Element& element) noexcept -> bool {
     return element == kElButterflyUp || element == kElButterflyLeft || element == kElButterflyDown ||
            element == kElButterflyRight;
 }
 
-inline auto IsOrange(const Element &element) noexcept -> bool {
+inline auto IsOrange(const Element& element) noexcept -> bool {
     return element == kElOrangeUp || element == kElOrangeLeft || element == kElOrangeDown || element == kElOrangeRight;
 }
 
-inline auto IsExplosion(const Element &element) noexcept -> bool {
+inline auto IsExplosion(const Element& element) noexcept -> bool {
     return element == kElExplosionBoulder || element == kElExplosionDiamond || element == kElExplosionEmpty;
 }
 
-inline auto IsMagicWall(const Element &element) noexcept -> bool {
+inline auto IsMagicWall(const Element& element) noexcept -> bool {
     return element == kElWallMagicDormant || element == kElWallMagicExpired || element == kElWallMagicOn;
 }
 
-inline auto IsOpenGate(const Element &element) noexcept -> bool {
+inline auto IsOpenGate(const Element& element) noexcept -> bool {
     return element == kElGateRedOpen || element == kElGateBlueOpen || element == kElGateGreenOpen ||
            element == kElGateYellowOpen;
 }
 
-inline auto IsKey(const Element &element) noexcept -> bool {
+inline auto IsKey(const Element& element) noexcept -> bool {
     return element == kElKeyRed || element == kElKeyBlue || element == kElKeyGreen || element == kElKeyYellow;
 }
 
-inline auto ElementToItem(const Element &element) noexcept -> std::underlying_type_t<HiddenCellType> {
+inline auto ElementToItem(const Element& element) noexcept -> std::underlying_type_t<HiddenCellType> {
     return to_underlying(element.cell_type);
 }
 

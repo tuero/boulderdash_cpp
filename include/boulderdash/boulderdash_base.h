@@ -1,6 +1,8 @@
 #ifndef BOULDERDASH_BASE_H_
 #define BOULDERDASH_BASE_H_
 
+#include <boulderdash/definitions.h>
+
 #include <array>
 #include <cstdint>
 #include <format>
@@ -10,8 +12,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include "definitions.h"
 
 namespace boulderdash {
 
