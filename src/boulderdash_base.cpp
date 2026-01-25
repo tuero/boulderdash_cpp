@@ -52,7 +52,7 @@ auto splitmix64(uint64_t seed) noexcept -> uint64_t {
 
 // Portable RNG
 // NOLINTBEGIN
-auto xorshift64(uint64_t &s) noexcept -> uint64_t {
+auto xorshift64(uint64_t& s) noexcept -> uint64_t {
     uint64_t x = s;
     x ^= x << 13;
     x ^= x >> 7;
@@ -63,7 +63,7 @@ auto xorshift64(uint64_t &s) noexcept -> uint64_t {
 // NOLINTEND
 
 auto to_local_hash(int flat_size, HiddenCellType el, int offset) noexcept -> uint64_t {
-    uint64_t seed = (flat_size * static_cast<int>(to_underlying(el))) + offset;
+    auto seed = static_cast<uint64_t>((flat_size * static_cast<int>(to_underlying(el))) + offset);
     uint64_t result = seed + SPLIT64_C1;
     result = (result ^ (result >> SPLIT64_S1)) * SPLIT64_C2;
     result = (result ^ (result >> SPLIT64_S2)) * SPLIT64_C3;
@@ -71,7 +71,7 @@ auto to_local_hash(int flat_size, HiddenCellType el, int offset) noexcept -> uin
 }
 }    // namespace
 
-void BoulderDashGameState::parse_board_str(const std::string &board_str) {
+void BoulderDashGameState::parse_board_str(const std::string& board_str) {
     std::stringstream board_ss(board_str);
     std::string segment;
     std::vector<std::string> seglist;
@@ -114,12 +114,12 @@ void BoulderDashGameState::parse_board_str(const std::string &board_str) {
     }
 }
 
-BoulderDashGameState::BoulderDashGameState(const std::string &board_str, const GameParameters &params)
+BoulderDashGameState::BoulderDashGameState(const std::string& board_str, const GameParameters& params)
     : magic_wall_steps(params.magic_wall_steps),
       butterfly_explosion_ver(params.butterfly_explosion_ver),
       butterfly_move_ver(params.butterfly_move_ver),
       random_state(splitmix64(0)),
-      blob_chance(params.blob_chance),
+      blob_chance(static_cast<uint8_t>(params.blob_chance)),
       gravity(params.gravity),
       disable_explosions(params.disable_explosions) {
     parse_board_str(board_str);
@@ -133,7 +133,7 @@ BoulderDashGameState::BoulderDashGameState(const std::string &board_str, const G
     }
 }
 
-BoulderDashGameState::BoulderDashGameState(InternalState &&internal_state)
+BoulderDashGameState::BoulderDashGameState(InternalState&& internal_state)
     : magic_wall_steps(internal_state.magic_wall_steps),
       blob_max_size(internal_state.blob_max_size),
       butterfly_explosion_ver(internal_state.butterfly_explosion_ver),
@@ -159,12 +159,12 @@ BoulderDashGameState::BoulderDashGameState(InternalState &&internal_state)
       has_updated(std::move(internal_state).has_updated) {
     grid.clear();
     grid.reserve(internal_state.grid.size());
-    for (const auto &el : internal_state.grid) {
+    for (const auto& el : internal_state.grid) {
         grid.push_back(static_cast<HiddenCellType>(el));
     }
 }
 
-auto BoulderDashGameState::operator==(const BoulderDashGameState &other) const -> bool {
+auto BoulderDashGameState::operator==(const BoulderDashGameState& other) const -> bool {
     return rows == other.rows && cols == other.cols && agent_idx == other.agent_idx &&
            is_agent_alive == other.is_agent_alive && is_agent_in_exit == other.is_agent_in_exit && grid == other.grid &&
            gems_required == other.gems_required && magic_active == other.magic_active &&
@@ -175,7 +175,7 @@ auto BoulderDashGameState::operator==(const BoulderDashGameState &other) const -
            blob_chance == other.blob_chance;
 }
 
-auto BoulderDashGameState::operator!=(const BoulderDashGameState &other) const -> bool {
+auto BoulderDashGameState::operator!=(const BoulderDashGameState& other) const -> bool {
     return !(*this == other);
 }
 
@@ -198,7 +198,7 @@ void BoulderDashGameState::apply_action(Action action) {
         if (has_updated[static_cast<std::size_t>(i)]) {    // Item already updated
             continue;
         }
-        const auto &hidden_el = grid[static_cast<std::size_t>(i)];
+        const auto& hidden_el = grid[static_cast<std::size_t>(i)];
         switch (hidden_el) {
             // Handle non-compound types
             case HiddenCellType::kStone:
@@ -234,7 +234,7 @@ void BoulderDashGameState::apply_action(Action action) {
             default:
                 // Handle compound types
                 // NOLINTNEXTLINE(*-bounds-constant-array-index)
-                const Element &element = kCellTypeToElement[static_cast<std::size_t>(hidden_el) + 1];
+                const Element& element = kCellTypeToElement[static_cast<std::size_t>(hidden_el) + 1];
                 if (IsButterfly(element)) {
                     UpdateButterfly(i, kButterflyToDirection.at(element));
                 } else if (IsFirefly(element)) {
@@ -268,10 +268,10 @@ auto BoulderDashGameState::observation_shape() const noexcept -> std::array<int,
 }
 
 auto BoulderDashGameState::get_observation() const noexcept -> std::vector<float> {
-    auto channel_length = cols * rows;
+    auto channel_length = static_cast<std::size_t>(cols * rows);
     std::vector<float> obs(kNumVisibleCellType * channel_length, 0);
-    for (int i : std::views::iota(0, channel_length)) {
-        obs[static_cast<std::size_t>(GetItem(i).visible_type) * channel_length + i] = 1;
+    for (auto i : std::views::iota(static_cast<std::size_t>(0), channel_length)) {
+        obs[static_cast<std::size_t>(GetItem(static_cast<int>(i)).visible_type) * channel_length + i] = 1;
     }
     return obs;
 }
@@ -284,17 +284,19 @@ auto BoulderDashGameState::image_shape() const noexcept -> std::array<int, 3> {
 }
 
 auto BoulderDashGameState::to_image() const noexcept -> std::vector<uint8_t> {
-    const std::size_t flat_size = cols * rows;
+    const auto flat_size = static_cast<std::size_t>(cols * rows);
     std::vector<uint8_t> img(flat_size * SPRITE_DATA_LEN, 0);
     for (int h : std::views::iota(0, rows)) {
         for (int w : std::views::iota(0, cols)) {
-            const std::size_t img_idx_top_left = h * (SPRITE_DATA_LEN * cols) + (w * SPRITE_DATA_LEN_PER_ROW);
-            const std::vector<uint8_t> &data = img_asset_map.at(GetItem(h * cols + w).visible_type);
+            const auto img_idx_top_left =
+                static_cast<std::size_t>(h * (SPRITE_DATA_LEN * cols) + (w * SPRITE_DATA_LEN_PER_ROW));
+            const std::vector<uint8_t>& data = img_asset_map.at(GetItem(h * cols + w).visible_type);
             for (int r : std::views::iota(0, SPRITE_HEIGHT)) {
                 for (int c : std::views::iota(0, SPRITE_WIDTH)) {
-                    const std::size_t data_idx = (r * SPRITE_DATA_LEN_PER_ROW) + (3 * c);
-                    const std::size_t img_idx =
-                        (r * SPRITE_DATA_LEN_PER_ROW * cols) + (SPRITE_CHANNELS * c) + img_idx_top_left;
+                    const auto data_idx = static_cast<std::size_t>((r * SPRITE_DATA_LEN_PER_ROW) + (3 * c));
+                    const auto img_idx =
+                        static_cast<std::size_t>((r * SPRITE_DATA_LEN_PER_ROW * cols) + (SPRITE_CHANNELS * c)) +
+                        img_idx_top_left;
                     img[img_idx + 0] = data[data_idx + 0];
                     img[img_idx + 1] = data[data_idx + 1];
                     img[img_idx + 2] = data[data_idx + 2];
@@ -324,7 +326,7 @@ auto BoulderDashGameState::get_positions(HiddenCellType element) const noexcept 
     return positions;
 }
 
-auto BoulderDashGameState::position_to_index(const Position &position) const -> int {
+auto BoulderDashGameState::position_to_index(const Position& position) const -> int {
     if (position.first < 0 || position.first >= rows || position.second < 0 || position.second >= cols) {
         throw std::invalid_argument(std::format("Invalid positiom ({:d}, {:d}) for map size ({:d}, {:d})",
                                                 position.first, position.second, rows, cols));
@@ -350,7 +352,7 @@ auto BoulderDashGameState::get_indices(HiddenCellType element) const noexcept ->
     return indices;
 }
 
-auto BoulderDashGameState::is_pos_in_bounds(const Position &position) const noexcept -> bool {
+auto BoulderDashGameState::is_pos_in_bounds(const Position& position) const noexcept -> bool {
     return position.first >= 0 && position.first < rows && position.second >= 0 && position.second < cols;
 }
 
@@ -373,7 +375,7 @@ auto BoulderDashGameState::get_hidden_item(int index) const -> HiddenCellType {
     return grid[static_cast<std::size_t>(index)];
 }
 
-auto operator<<(std::ostream &os, const GameParameters &params) -> std::ostream & {
+auto operator<<(std::ostream& os, const GameParameters& params) -> std::ostream& {
     os << "{\n";
     os << std::format("  gravity: {}\n", params.gravity);
     os << std::format("  magic_wall_steps: {:d}\n", params.magic_wall_steps);
@@ -386,7 +388,7 @@ auto operator<<(std::ostream &os, const GameParameters &params) -> std::ostream 
     return os;
 }
 
-auto operator<<(std::ostream &os, const BoulderDashGameState &state) -> std::ostream & {
+auto operator<<(std::ostream& os, const BoulderDashGameState& state) -> std::ostream& {
     const auto print_horz_boarder = [&]() {
         for (int w = 0; w < state.cols + 2; ++w) {
             os << "-";
@@ -398,7 +400,9 @@ auto operator<<(std::ostream &os, const BoulderDashGameState &state) -> std::ost
         os << "|";
         for (int w : std::views::iota(0, state.cols)) {
             // NOLINTNEXTLINE(*-bounds-constant-array-index)
-            os << kCellTypeToElement[static_cast<std::size_t>(state.grid[h * state.cols + w]) + 1].id;
+            os << kCellTypeToElement
+                      [static_cast<std::size_t>(state.grid[static_cast<std::size_t>(h * state.cols + w)]) + 1]
+                          .id;
         }
         os << "|" << std::endl;
     }
@@ -437,13 +441,13 @@ auto BoulderDashGameState::IndexFromDirection(int index, Direction direction) co
 auto BoulderDashGameState::InBounds(int index, Direction direction) const noexcept -> bool {
     int col = index % cols;
     int row = (index - col) / cols;
-    const auto &offsets = kDirectionOffsets[static_cast<std::size_t>(direction)];    // NOLINT(*-array-index)
+    const auto& offsets = kDirectionOffsets[static_cast<std::size_t>(direction)];    // NOLINT(*-array-index)
     col += offsets.first;
     row += offsets.second;
     return col >= 0 && col < static_cast<int>(cols) && row >= 0 && row < static_cast<int>(rows);
 }
 
-auto BoulderDashGameState::IsType(int index, const Element &element, Direction direction) const noexcept -> bool {
+auto BoulderDashGameState::IsType(int index, const Element& element, Direction direction) const noexcept -> bool {
     auto new_index = IndexFromDirection(index, direction);
     return InBounds(index, direction) && GetItem(new_index) == element;
 }
@@ -464,25 +468,25 @@ void BoulderDashGameState::MoveItem(int index, Direction direction) noexcept {
     grid[static_cast<std::size_t>(index)] = kElEmpty.cell_type;
     hash ^= to_local_hash(flat_size, kElEmpty.cell_type, index);
 
-    has_updated[new_index] = true;
+    has_updated[static_cast<std::size_t>(new_index)] = true;
 }
 
-void BoulderDashGameState::SetItem(int index, const Element &element, Direction direction) noexcept {
+void BoulderDashGameState::SetItem(int index, const Element& element, Direction direction) noexcept {
     auto new_index = IndexFromDirection(index, direction);
     auto flat_size = rows * cols;
     hash ^= to_local_hash(flat_size, grid[static_cast<std::size_t>(new_index)], new_index);
     grid[static_cast<std::size_t>(new_index)] = element.cell_type;
     hash ^= to_local_hash(flat_size, element.cell_type, new_index);
-    has_updated[new_index] = true;
+    has_updated[static_cast<std::size_t>(new_index)] = true;
 }
 
-auto BoulderDashGameState::GetItem(int index, Direction direction) const noexcept -> const Element & {
+auto BoulderDashGameState::GetItem(int index, Direction direction) const noexcept -> const Element& {
     auto new_index = static_cast<std::size_t>(IndexFromDirection(index, direction));
     // NOLINTNEXTLINE(*-bounds-constant-array-index)
     return kCellTypeToElement[static_cast<std::size_t>(grid[new_index]) + 1];
 }
 
-auto BoulderDashGameState::IsTypeAdjacent(int index, const Element &element) const noexcept -> bool {
+auto BoulderDashGameState::IsTypeAdjacent(int index, const Element& element) const noexcept -> bool {
     return IsType(index, element, Direction::kUp) || IsType(index, element, Direction::kLeft) ||
            IsType(index, element, Direction::kDown) || IsType(index, element, Direction::kRight);
 }
@@ -499,17 +503,17 @@ auto BoulderDashGameState::CanRollRight(int index) const noexcept -> bool {
            IsType(index, kElEmpty, Direction::kRight) && IsType(index, kElEmpty, Direction::kDownRight);
 }
 
-void BoulderDashGameState::RollLeft(int index, const Element &element) noexcept {
+void BoulderDashGameState::RollLeft(int index, const Element& element) noexcept {
     SetItem(index, element);
     MoveItem(index, Direction::kLeft);
 }
 
-void BoulderDashGameState::RollRight(int index, const Element &element) noexcept {
+void BoulderDashGameState::RollRight(int index, const Element& element) noexcept {
     SetItem(index, element);
     MoveItem(index, Direction::kRight);
 }
 
-void BoulderDashGameState::Push(int index, const Element &stationary, const Element &falling,
+void BoulderDashGameState::Push(int index, const Element& stationary, const Element& falling,
                                 Direction direction) noexcept {
     auto new_index = IndexFromDirection(index, direction);
     // Check if same direction past element is empty so that theres room to push
@@ -526,7 +530,7 @@ void BoulderDashGameState::Push(int index, const Element &stationary, const Elem
     }
 }
 
-void BoulderDashGameState::MoveThroughMagic(int index, const Element &element) noexcept {
+void BoulderDashGameState::MoveThroughMagic(int index, const Element& element) noexcept {
     // Check if magic wall is still active
     if (magic_wall_steps <= 0) {
         return;
@@ -542,10 +546,10 @@ void BoulderDashGameState::MoveThroughMagic(int index, const Element &element) n
 }
 
 // NOLINTNEXTLINE (mi-no-recursion)
-void BoulderDashGameState::Explode(int index, const Element &element, Direction direction) noexcept {
+void BoulderDashGameState::Explode(int index, const Element& element, Direction direction) noexcept {
     auto new_index = IndexFromDirection(index, direction);
-    const auto &it = kElementToExplosion.find(GetItem(new_index));
-    const Element &ex = (it == kElementToExplosion.end()) ? kElExplosionEmpty : it->second;
+    const auto& it = kElementToExplosion.find(GetItem(new_index));
+    const Element& ex = (it == kElementToExplosion.end()) ? kElExplosionEmpty : it->second;
     if (GetItem(new_index) == kElAgent) {
         is_agent_alive = false;
     }
@@ -749,7 +753,7 @@ void BoulderDashGameState::UpdateAgent(int index, Direction direction) noexcept 
         Push(index, GetItem(index, direction), kElToFalling.at(GetItem(index, direction)), direction);
     } else if (IsKey(GetItem(index, direction))) {
         // Collecting key, set gate open
-        const Element &key_type = GetItem(index, direction);
+        const Element& key_type = GetItem(index, direction);
         OpenGate(kKeyToGate.at(key_type));
         MoveItem(index, direction);
         agent_idx = IndexFromDirection(index, direction);
@@ -764,7 +768,7 @@ void BoulderDashGameState::UpdateAgent(int index, Direction direction) noexcept 
                 ++gems_collected;
                 reward_signal |= RewardCodes::kRewardCollectDiamond;
             } else if (IsKey(GetItem(index_gate, direction))) {
-                const Element &key_type = GetItem(index_gate, direction);
+                const Element& key_type = GetItem(index_gate, direction);
                 OpenGate(kKeyToGate.at(key_type));
                 reward_signal |= RewardCodes::kRewardCollectKey;
                 reward_signal |= static_cast<uint64_t>(kKeyToSignal.at(key_type));
@@ -827,8 +831,8 @@ void BoulderDashGameState::UpdateButterfly(int index, Direction direction) noexc
         SetItem(index,
                 kDirectionToButterfly[static_cast<std::size_t>(kRotateLeft[static_cast<std::size_t>(direction)])]);
         if (butterfly_move_ver == ButterflyMoveVersion::kInstant) {
-            const auto new_dir = kRotateLeft[static_cast<std::size_t>(direction)];
-            MoveItem(index, new_dir);
+            const auto _new_dir = kRotateLeft[static_cast<std::size_t>(direction)];
+            MoveItem(index, _new_dir);
         }
     }
     // NOLINTEND(*-bounds-constant-array-index)
@@ -901,7 +905,7 @@ void BoulderDashGameState::UpdateExplosions(int index) noexcept {
     SetItem(index, kExplosionToElement.at(GetItem(index)));
 }
 
-void BoulderDashGameState::OpenGate(const Element &element) noexcept {
+void BoulderDashGameState::OpenGate(const Element& element) noexcept {
     for (int index : std::views::iota(0, rows * cols)) {
         if (grid[static_cast<std::size_t>(index)] == element.cell_type) {
             SetItem(index, kGateOpenMap.at(GetItem(index)));

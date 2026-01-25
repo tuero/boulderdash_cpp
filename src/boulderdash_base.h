@@ -3,7 +3,9 @@
 
 #include <array>
 #include <cstdint>
+#include <format>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -36,7 +38,7 @@ struct GameParameters {
     bool disable_explosions = DEFAULT_DISABLE_EXPLOSIONS;
     int butterfly_explosion_ver = DEFAULT_BUTTERFLY_EXPLOSION_VER;
     int butterfly_move_ver = DEFAULT_BUTTERFLY_MOVE_VER;
-    friend auto operator<<(std::ostream &os, const GameParameters &params) -> std::ostream &;
+    friend auto operator<<(std::ostream& os, const GameParameters& params) -> std::ostream&;
 };
 
 // Game state
@@ -73,11 +75,11 @@ public:
     using Position = std::pair<int, int>;
 
     BoulderDashGameState() = delete;
-    BoulderDashGameState(const std::string &board_str, const GameParameters &params = {});
-    BoulderDashGameState(InternalState &&internal_state);
+    BoulderDashGameState(const std::string& board_str, const GameParameters& params = {});
+    BoulderDashGameState(InternalState&& internal_state);
 
-    auto operator==(const BoulderDashGameState &other) const -> bool;
-    auto operator!=(const BoulderDashGameState &other) const -> bool;
+    auto operator==(const BoulderDashGameState& other) const -> bool;
+    auto operator!=(const BoulderDashGameState& other) const -> bool;
 
     static inline std::string name = "boulderdash";
 
@@ -151,7 +153,7 @@ public:
      * Get the index corresponding to the given position
      * @return the flat index
      */
-    [[nodiscard]] auto position_to_index(const Position &position) const -> int;
+    [[nodiscard]] auto position_to_index(const Position& position) const -> int;
 
     /**
      * Get the position corresponding to the given index
@@ -202,7 +204,7 @@ public:
      * @param position The position to check
      * @return True if the position is in bounds, false otherwise
      */
-    [[nodiscard]] auto is_pos_in_bounds(const Position &position) const noexcept -> bool;
+    [[nodiscard]] auto is_pos_in_bounds(const Position& position) const noexcept -> bool;
 
     /**
      * Check if the agent is alive
@@ -225,12 +227,12 @@ public:
      */
     [[nodiscard]] auto get_hidden_item(int index) const -> HiddenCellType;
 
-    friend auto operator<<(std::ostream &os, const BoulderDashGameState &state) -> std::ostream &;
+    friend auto operator<<(std::ostream& os, const BoulderDashGameState& state) -> std::ostream&;
 
     [[nodiscard]] auto pack() const -> InternalState {
         std::vector<decltype(to_underlying(grid[0]))> _grid;
         _grid.reserve(grid.size());
-        for (const auto &el : grid) {
+        for (const auto& el : grid) {
             _grid.push_back(to_underlying(el));
         }
         return {
@@ -264,22 +266,22 @@ public:
 private:
     [[nodiscard]] auto IndexFromDirection(int index, Direction direction) const noexcept -> int;
     [[nodiscard]] auto InBounds(int index, Direction direction = Direction::kNoop) const noexcept -> bool;
-    [[nodiscard]] auto IsType(int index, const Element &element, Direction direction = Direction::kNoop) const noexcept
+    [[nodiscard]] auto IsType(int index, const Element& element, Direction direction = Direction::kNoop) const noexcept
         -> bool;
     [[nodiscard]] auto HasProperty(int index, int property, Direction direction = Direction::kNoop) const noexcept
         -> bool;
     void MoveItem(int index, Direction direction) noexcept;
-    void SetItem(int index, const Element &element, Direction direction = Direction::kNoop) noexcept;
-    [[nodiscard]] auto GetItem(int index, Direction direction = Direction::kNoop) const noexcept -> const Element &;
-    [[nodiscard]] auto IsTypeAdjacent(int index, const Element &element) const noexcept -> bool;
+    void SetItem(int index, const Element& element, Direction direction = Direction::kNoop) noexcept;
+    [[nodiscard]] auto GetItem(int index, Direction direction = Direction::kNoop) const noexcept -> const Element&;
+    [[nodiscard]] auto IsTypeAdjacent(int index, const Element& element) const noexcept -> bool;
 
     [[nodiscard]] auto CanRollLeft(int index) const noexcept -> bool;
     [[nodiscard]] auto CanRollRight(int index) const noexcept -> bool;
-    void RollLeft(int index, const Element &element) noexcept;
-    void RollRight(int index, const Element &element) noexcept;
-    void Push(int index, const Element &stationary, const Element &falling, Direction direction) noexcept;
-    void MoveThroughMagic(int index, const Element &element) noexcept;
-    void Explode(int index, const Element &element, Direction direction = Direction::kNoop) noexcept;
+    void RollLeft(int index, const Element& element) noexcept;
+    void RollRight(int index, const Element& element) noexcept;
+    void Push(int index, const Element& stationary, const Element& falling, Direction direction) noexcept;
+    void MoveThroughMagic(int index, const Element& element) noexcept;
+    void Explode(int index, const Element& element, Direction direction = Direction::kNoop) noexcept;
 
     void UpdateStone(int index) noexcept;
     void UpdateStoneFalling(int index) noexcept;
@@ -297,12 +299,12 @@ private:
     void UpdateMagicWall(int index) noexcept;
     void UpdateBlob(int index) noexcept;
     void UpdateExplosions(int index) noexcept;
-    void OpenGate(const Element &element) noexcept;
+    void OpenGate(const Element& element) noexcept;
 
     void StartScan() noexcept;
     void EndScan() noexcept;
 
-    void parse_board_str(const std::string &board_str);
+    void parse_board_str(const std::string& board_str);
 
     int magic_wall_steps;                  // params: Number of steps the magic wall stays active for
     int blob_max_size;                     // Max blob size in terms of grid spaces
@@ -333,5 +335,14 @@ private:
 };
 
 }    // namespace boulderdash
+
+template <>
+struct std::formatter<boulderdash::BoulderDashGameState> : std::formatter<std::string> {
+    auto format(boulderdash::BoulderDashGameState s, format_context& ctx) const {
+        std::ostringstream oss;
+        oss << s;
+        return formatter<string>::format(std::format("{}", oss.str()), ctx);
+    }
+};
 
 #endif    // BOULDERDASH_BASE_H_

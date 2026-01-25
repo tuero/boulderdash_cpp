@@ -1,9 +1,9 @@
 #include <boulderdash/boulderdash.h>
 
+#include <format>
 #include <iostream>
 #include <limits>
 #include <string>
-#include <unordered_map>
 
 using namespace boulderdash;
 
@@ -14,7 +14,7 @@ void test_play() {
     std::cin >> board_str;
     BoulderDashGameState state(board_str);
 
-    std::cout << state;
+    std::cout << std::format("{}", state);
     std::cout << state.get_hash() << std::endl;
 
     int action = -1;
