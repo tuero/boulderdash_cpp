@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "pyboulderdash"
-version = "1.0.0"
+version = "1.0.3"
 description = "Python BoulderDash bindings"
 dependencies = ["numpy"]
 
