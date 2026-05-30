@@ -2,6 +2,7 @@
 #define BOULDERDASH_BASE_H_
 
 #include <boulderdash/definitions.h>
+#include <boulderdash/zobrist.h>
 
 #include <array>
 #include <cstdint>
@@ -59,7 +60,7 @@ public:
         int gems_required;
         uint64_t random_state;
         uint64_t reward_signal;
-        uint64_t hash;
+        Zobrist256 hash;
         uint8_t blob_chance;
         bool gravity;
         bool disable_explosions;
@@ -184,6 +185,12 @@ public:
      * @return hash value
      */
     [[nodiscard]] auto get_hash() const noexcept -> uint64_t;
+
+    /**
+     * Get the 256-bit hash representation for the current state.
+     * @return hash value
+     */
+    [[nodiscard]] auto get_hash256() const noexcept -> Zobrist256;
 
     /**
      * Get all positions for a given element type
@@ -319,7 +326,7 @@ private:
     int gems_required = 0;
     uint64_t random_state;         // State of Xorshift rng
     uint64_t reward_signal = 0;    // Signal for external information about events
-    uint64_t hash = 0;
+    Zobrist256 hash{};
     uint8_t blob_chance{};              // Chance (out of 256) for blob to spawn
     bool gravity{};                     // Flag if gravity is on, affects stones/gems
     bool disable_explosions = false;    // Flag if explosions are disabled, affects bombs

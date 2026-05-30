@@ -1,4 +1,6 @@
-#include <boulderdash/boulderdash.h>
+#include <boulderdash/boulderdash_base.h>
+#include <boulderdash/definitions.h>
+#include <boulderdash/zobrist.h>
 
 #include <algorithm>
 #include <array>
@@ -31,24 +33,6 @@ namespace {
 #endif
 }
 
-constexpr uint64_t SPLIT64_S1 = 30;
-constexpr uint64_t SPLIT64_S2 = 27;
-constexpr uint64_t SPLIT64_S3 = 31;
-constexpr uint64_t SPLIT64_C1 = 0x9E3779B97f4A7C15;
-constexpr uint64_t SPLIT64_C2 = 0xBF58476D1CE4E5B9;
-constexpr uint64_t SPLIT64_C3 = 0x94D049BB133111EB;
-
-// https://en.wikipedia.org/wiki/Xorshift
-// Portable RNG Seed
-// NOLINTBEGIN
-auto splitmix64(uint64_t seed) noexcept -> uint64_t {
-    uint64_t result = seed + SPLIT64_C1;
-    result = (result ^ (result >> SPLIT64_S1)) * SPLIT64_C2;
-    result = (result ^ (result >> SPLIT64_S2)) * SPLIT64_C3;
-    return result ^ (result >> SPLIT64_S3);
-}
-// NOLINTEND
-
 // Portable RNG
 // NOLINTBEGIN
 auto xorshift64(uint64_t& s) noexcept -> uint64_t {
@@ -61,13 +45,6 @@ auto xorshift64(uint64_t& s) noexcept -> uint64_t {
 }
 // NOLINTEND
 
-auto to_local_hash(int flat_size, HiddenCellType el, int offset) noexcept -> uint64_t {
-    auto seed = static_cast<uint64_t>((flat_size * static_cast<int>(to_underlying(el))) + offset);
-    uint64_t result = seed + SPLIT64_C1;
-    result = (result ^ (result >> SPLIT64_S1)) * SPLIT64_C2;
-    result = (result ^ (result >> SPLIT64_S2)) * SPLIT64_C3;
-    return result ^ (result >> SPLIT64_S3);
-}
 }    // namespace
 
 void BoulderDashGameState::parse_board_str(const std::string& board_str) {
@@ -126,9 +103,10 @@ BoulderDashGameState::BoulderDashGameState(const std::string& board_str, const G
     blob_max_size = static_cast<int>(static_cast<float>(cols * rows) * params.blob_max_percentage);
 
     // Initial hash
+    hash = {};
     int flat_size = rows * cols;
     for (int i : std::views::iota(0, flat_size)) {
-        hash ^= to_local_hash(flat_size, grid[static_cast<std::size_t>(i)], i);
+        hash ^= to_local_hash<4>(flat_size, grid[static_cast<std::size_t>(i)], i);
     }
 }
 
@@ -311,6 +289,10 @@ auto BoulderDashGameState::get_reward_signal() const noexcept -> uint64_t {
 }
 
 auto BoulderDashGameState::get_hash() const noexcept -> uint64_t {
+    return hash.low64();
+}
+
+auto BoulderDashGameState::get_hash256() const noexcept -> Zobrist256 {
     return hash;
 }
 
@@ -459,13 +441,13 @@ auto BoulderDashGameState::HasProperty(int index, int property, Direction direct
 void BoulderDashGameState::MoveItem(int index, Direction direction) noexcept {
     auto new_index = IndexFromDirection(index, direction);
     auto flat_size = rows * cols;
-    hash ^= to_local_hash(flat_size, grid[static_cast<std::size_t>(new_index)], new_index);
+    hash ^= to_local_hash<4>(flat_size, grid[static_cast<std::size_t>(new_index)], new_index);
     grid[static_cast<std::size_t>(new_index)] = grid[static_cast<std::size_t>(index)];
-    hash ^= to_local_hash(flat_size, grid[static_cast<std::size_t>(new_index)], new_index);
+    hash ^= to_local_hash<4>(flat_size, grid[static_cast<std::size_t>(new_index)], new_index);
 
-    hash ^= to_local_hash(flat_size, grid[static_cast<std::size_t>(index)], index);
+    hash ^= to_local_hash<4>(flat_size, grid[static_cast<std::size_t>(index)], index);
     grid[static_cast<std::size_t>(index)] = kElEmpty.cell_type;
-    hash ^= to_local_hash(flat_size, kElEmpty.cell_type, index);
+    hash ^= to_local_hash<4>(flat_size, kElEmpty.cell_type, index);
 
     has_updated[static_cast<std::size_t>(new_index)] = true;
 }
@@ -473,9 +455,9 @@ void BoulderDashGameState::MoveItem(int index, Direction direction) noexcept {
 void BoulderDashGameState::SetItem(int index, const Element& element, Direction direction) noexcept {
     auto new_index = IndexFromDirection(index, direction);
     auto flat_size = rows * cols;
-    hash ^= to_local_hash(flat_size, grid[static_cast<std::size_t>(new_index)], new_index);
+    hash ^= to_local_hash<4>(flat_size, grid[static_cast<std::size_t>(new_index)], new_index);
     grid[static_cast<std::size_t>(new_index)] = element.cell_type;
-    hash ^= to_local_hash(flat_size, element.cell_type, new_index);
+    hash ^= to_local_hash<4>(flat_size, element.cell_type, new_index);
     has_updated[static_cast<std::size_t>(new_index)] = true;
 }
 

@@ -3,5 +3,6 @@
 
 #include <boulderdash/boulderdash_base.h>
 #include <boulderdash/definitions.h>
+#include <boulderdash/zobrist.h>
 
 #endif    // BOULDERDASH_H_

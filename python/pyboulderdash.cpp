@@ -88,7 +88,7 @@ PYBIND11_MODULE(pyboulderdash, m) {
     py::class_<GP>(m, "GameParameters")
         .def(py::init<>())
         .def("__repr__",
-             [](const GP &self) {
+             [](const GP& self) {
                  std::stringstream stream;
                  stream << self;
                  return stream.str();
@@ -102,28 +102,29 @@ PYBIND11_MODULE(pyboulderdash, m) {
         .def_readwrite("butterfly_move_ver", &GP::butterfly_move_ver);
 
     py::class_<T>(m, "BoulderDashGameState")
-        .def(py::init<const std::string &>())
-        .def(py::init<const std::string &, const GP &>())
+        .def(py::init<const std::string&>())
+        .def(py::init<const std::string&, const GP&>())
         .def_readonly_static("name", &T::name)
         .def_readonly_static("num_actions", &boulderdash::kNumActions)
         .def(py::self == py::self)    // NOLINT (misc-redundant-expression)
         .def(py::self != py::self)    // NOLINT (misc-redundant-expression)
-        .def("__hash__", [](const T &self) { return self.get_hash(); })
-        .def("__copy__", [](const T &self) { return T(self); })
-        .def("__deepcopy__", [](const T &self, py::dict) { return T(self); })
+        .def("__hash__", [](const T& self) { return self.get_hash(); })
+        .def("__copy__", [](const T& self) { return T(self); })
+        .def("__deepcopy__", [](const T& self, py::dict) { return T(self); })
         .def("__repr__",
-             [](const T &self) {
+             [](const T& self) {
                  std::stringstream stream;
                  stream << self;
                  return stream.str();
              })
         .def(py::pickle(
-            [](const T &self) {    // __getstate__
+            [](const T& self) {    // __getstate__
                 auto s = self.pack();
+                const auto hash_tuple = py::make_tuple(s.hash.word[0], s.hash.word[1], s.hash.word[2], s.hash.word[3]);
                 return py::make_tuple(s.magic_wall_steps, s.blob_max_size, s.butterfly_explosion_ver,
                                       s.butterfly_move_ver, s.gems_collected, s.magic_wall_steps_remaining, s.blob_size,
                                       s.rows, s.cols, s.agent_idx, s.gems_required, s.random_state, s.reward_signal,
-                                      s.hash, s.blob_chance, s.gravity, s.disable_explosions, s.magic_active,
+                                      hash_tuple, s.blob_chance, s.gravity, s.disable_explosions, s.magic_active,
                                       s.blob_enclosed, s.is_agent_alive, s.is_agent_in_exit, s.blob_swap, s.grid,
                                       s.has_updated);
             },
@@ -145,7 +146,14 @@ PYBIND11_MODULE(pyboulderdash, m) {
                 s.gems_required = t[10].cast<int>();                // NOLINT(*-magic-numbers)
                 s.random_state = t[11].cast<uint64_t>();            // NOLINT(*-magic-numbers)
                 s.reward_signal = t[12].cast<uint64_t>();           // NOLINT(*-magic-numbers)
-                s.hash = t[13].cast<uint64_t>();                    // NOLINT(*-magic-numbers)
+                const auto hash_tuple = t[13].cast<py::tuple>();
+                if (hash_tuple.size() != 4) {
+                    throw std::runtime_error("Invalid hash tuple state");
+                }
+                s.hash.word[0] = hash_tuple[0].cast<uint64_t>();
+                s.hash.word[1] = hash_tuple[1].cast<uint64_t>();
+                s.hash.word[2] = hash_tuple[2].cast<uint64_t>();
+                s.hash.word[3] = hash_tuple[3].cast<uint64_t>();
                 s.blob_chance = t[14].cast<uint8_t>();              // NOLINT(*-magic-numbers)
                 s.gravity = t[15].cast<bool>();                     // NOLINT(*-magic-numbers)
                 s.disable_explosions = t[16].cast<bool>();          // NOLINT(*-magic-numbers)
@@ -159,7 +167,7 @@ PYBIND11_MODULE(pyboulderdash, m) {
                 return {std::move(s)};
             }))
         .def("apply_action",
-             [](T &self, int action) {
+             [](T& self, int action) {
                  if (action < 0 || action >= T::action_space_size()) {
                      throw std::invalid_argument("Invalid action.");
                  }
@@ -169,18 +177,23 @@ PYBIND11_MODULE(pyboulderdash, m) {
         .def("is_terminal", &T::is_terminal)
         .def("observation_shape", &T::observation_shape)
         .def("get_observation",
-             [](const T &self) {
+             [](const T& self) {
                  py::array_t<float> out = py::cast(self.get_observation());
                  return out.reshape(self.observation_shape());
              })
         .def("image_shape", &T::image_shape)
         .def("to_image",
-             [](T &self) {
+             [](T& self) {
                  py::array_t<uint8_t> out = py::cast(self.to_image());
                  const auto obs_shape = self.observation_shape();
                  return out.reshape({static_cast<py::ssize_t>(obs_shape[1] * boulderdash::SPRITE_HEIGHT),
                                      static_cast<py::ssize_t>(obs_shape[2] * boulderdash::SPRITE_WIDTH),
                                      static_cast<py::ssize_t>(boulderdash::SPRITE_CHANNELS)});
+             })
+        .def("get_hash256",
+             [](const T& self) {
+                 const auto hash = self.get_hash256();
+                 return py::make_tuple(hash.word[0], hash.word[1], hash.word[2], hash.word[3]);
              })
         .def("get_reward_signal", &T::get_reward_signal)
         .def("get_agent_index", &T::get_agent_index)
